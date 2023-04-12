@@ -15,11 +15,9 @@ from bs4 import BeautifulSoup
 from core_utils.article.article import Article
 from core_utils.article.io import to_raw
 from core_utils.config_dto import ConfigDTO
-from core_utils.constants import (ASSETS_PATH,
-                                  CRAWLER_CONFIG_PATH,
+from core_utils.constants import (ASSETS_PATH, CRAWLER_CONFIG_PATH,
                                   NUM_ARTICLES_UPPER_LIMIT,
-                                  TIMEOUT_LOWER_LIMIT,
-                                  TIMEOUT_UPPER_LIMIT)
+                                  TIMEOUT_LOWER_LIMIT, TIMEOUT_UPPER_LIMIT)
 
 
 class IncorrectSeedURLError(Exception):
@@ -234,7 +232,6 @@ class HTMLParser:
         main_bs = article_soup.find('div', {'class': "page-content io-article-body"})
         for paragraph in main_bs.find_all('p')[:-1]:
             self.article.text += paragraph.text + '/n'
-
 
     def _fill_article_with_meta_information(self, article_soup: BeautifulSoup) -> None:
         """
