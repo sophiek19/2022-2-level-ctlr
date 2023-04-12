@@ -27,7 +27,7 @@ class IncorrectSeedURLError(Exception):
     """
 
 
-class NumbersOfArticlesOutOfRangeError(Exception):
+class NumberOfArticlesOutOfRangeError(Exception):
     """
     Raised when number of articles is out of range from 1 to 150
     """
@@ -102,7 +102,7 @@ class Config:
             if not (isinstance(url, str) and re.match(r'https?://.*', url)):
                 raise IncorrectSeedURLError
         if not 1 < config_dto.total_aricles < NUM_ARTICLES_UPPER_LIMIT:
-            raise NumbersOfArticlesOutOfRangeError
+            raise NumberOfArticlesOutOfRangeError
         if not isinstance(config_dto.total_articles, int):
             raise IncorrectNumberOfArticlesError
         if not isinstance(config_dto.headers, dict):
