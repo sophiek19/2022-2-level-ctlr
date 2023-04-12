@@ -4,12 +4,14 @@ Crawler implementation
 import json
 import random
 import re
-import requests
 import shutil
-from bs4 import BeautifulSoup
+import time
 from pathlib import Path
-from time import sleep
 from typing import Pattern, Union
+
+import requests
+from bs4 import BeautifulSoup
+
 from core_utils.article.article import Article
 from core_utils.article.io import to_raw
 from core_utils.config_dto import ConfigDTO
@@ -161,7 +163,7 @@ def make_request(url: str, config: Config) -> requests.models.Response:
     Delivers a response from a request
     with given configuration
     """
-    sleep(random.randrange(2, 4))
+    time.sleep(random.randrange(2, 4))
     headers = config.get_headers()
     timeout = config.get_timeout()
     verify = config.get_verify_certificate()
