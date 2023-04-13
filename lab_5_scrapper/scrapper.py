@@ -97,10 +97,10 @@ class Config:
         are not corrupt
         """
         config_dto = self._extract_config_content()
-        if not (isinstance(config_dto.seed_urls, list) and len(config_dto.seed_urls) > 0):
+        if not isinstance(config_dto.seed_urls, list) or not config_dto.seed_urls:
             raise IncorrectSeedURLError
         for url in config_dto.seed_urls:
-            if not (isinstance(url, str) and re.match(r'https?://.*', url)):
+            if not isinstance(url, str) or not re.match(r'https?://.*', url):
                 raise IncorrectSeedURLError
         if config_dto.total_articles > NUM_ARTICLES_UPPER_LIMIT:
             raise NumberOfArticlesOutOfRangeError
@@ -111,9 +111,11 @@ class Config:
             raise IncorrectHeadersError
         if not isinstance(config_dto.encoding, str):
             raise IncorrectEncodingError
-        if not (isinstance(config_dto.timeout, int) and TIMEOUT_LOWER_LIMIT < config_dto.timeout < TIMEOUT_UPPER_LIMIT):
+        if (not isinstance(config_dto.timeout, int) or config_dto.timeout < TIMEOUT_LOWER_LIMIT
+                or config_dto.timeout > TIMEOUT_UPPER_LIMIT):
             raise IncorrectTimeoutError
-        if not (isinstance(config_dto.should_verify_certificate, bool) and isinstance(config_dto.headless_mode, bool)):
+        if (not isinstance(config_dto.should_verify_certificate, bool)
+                or not isinstance(config_dto.headless_mode, bool)):
             raise IncorrectVerifyError
 
     def get_seed_urls(self) -> list[str]:
@@ -192,7 +194,9 @@ class Crawler:
         """
         Finds and retrieves URL from HTML
         """
-        return article_bs.get('href')
+        if isinstance(article_bs.get('href'), str):
+            return article_bs.get('href')
+        return ''
 
     def find_articles(self) -> None:
         """
@@ -204,7 +208,7 @@ class Crawler:
                 main_bs = BeautifulSoup(response.text, 'lxml')
                 articles = main_bs.find_all('a', {'class': 'news-for-copy'})
                 for article_bs in articles:
-                    if len(self.urls) != self._config.get_num_articles():
+                    if len(self.urls) < self._config.get_num_articles():
                         self.urls.append(self._extract_url(article_bs))
 
     def get_search_urls(self) -> list:
@@ -277,8 +281,8 @@ def main() -> None:
     prepare_environment(ASSETS_PATH)
     crawler = Crawler(config=config)
     crawler.find_articles()
-    for el in crawler.urls:
-        parser = HTMLParser(full_url=el, article_id=crawler.urls.index(el) + 1, config=config)
+    for i, url in enumerate(crawler.urls, start=1):
+        parser = HTMLParser(full_url=url, article_id=i, config=config)
         text = parser.parse()
         if isinstance(text, Article):
             to_raw(text)
