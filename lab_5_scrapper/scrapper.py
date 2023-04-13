@@ -80,7 +80,8 @@ class Config:
         self._headers = config_dto.headers
         self._encoding = config_dto.encoding
         self._timeout = config_dto.timeout
-        self._should_verify = config_dto.should_verify_certificate
+        self._should_verify_certificate = config_dto.should_verify_certificate
+        self._headless_mode = config_dto.headless_mode
 
     def _extract_config_content(self) -> ConfigDTO:
         """
@@ -101,9 +102,10 @@ class Config:
         for url in config_dto.seed_urls:
             if not (isinstance(url, str) and re.match(r'https?://.*', url)):
                 raise IncorrectSeedURLError
-        if not 1 < config_dto.total_aricles < NUM_ARTICLES_UPPER_LIMIT:
+        if config_dto.total_articles > NUM_ARTICLES_UPPER_LIMIT:
             raise NumberOfArticlesOutOfRangeError
-        if not isinstance(config_dto.total_articles, int):
+        if (not isinstance(config_dto.total_articles, int) or config_dto.total_articles < 1
+                or isinstance(config_dto.total_articles, bool)):
             raise IncorrectNumberOfArticlesError
         if not isinstance(config_dto.headers, dict):
             raise IncorrectHeadersError
@@ -111,7 +113,7 @@ class Config:
             raise IncorrectEncodingError
         if not (isinstance(config_dto.timeout, int) and TIMEOUT_LOWER_LIMIT < config_dto.timeout < TIMEOUT_UPPER_LIMIT):
             raise IncorrectTimeoutError
-        if not isinstance(config_dto.should_verify_certificate, bool):
+        if not (isinstance(config_dto.should_verify_certificate, bool) and isinstance(config_dto.headless_mode, bool)):
             raise IncorrectVerifyError
 
     def get_seed_urls(self) -> list[str]:
@@ -148,7 +150,7 @@ class Config:
         """
         Retrieve whether to verify certificate
         """
-        return self._should_verify
+        return self._should_verify_certificate
 
     def get_headless_mode(self) -> bool:
         """
@@ -196,13 +198,13 @@ class Crawler:
         """
         Finds articles
         """
-        while len(self.urls) < self._config.get_num_articles():
-            for seed_url in self._seed_urls:
-                response = make_request(seed_url, self._config)
-                if response.status_code == 200:
-                    main_bs = BeautifulSoup(response.text, 'lxml')
-                    articles = main_bs.find_all('a', {'class': 'news-for-copy'})
-                    for article_bs in articles:
+        for seed_url in self._seed_urls:
+            response = make_request(seed_url, self._config)
+            if response.status_code == 200:
+                main_bs = BeautifulSoup(response.text, 'lxml')
+                articles = main_bs.find_all('a', {'class': 'news-for-copy'})
+                for article_bs in articles:
+                    if len(self.urls) != self._config.get_num_articles():
                         self.urls.append(self._extract_url(article_bs))
 
     def get_search_urls(self) -> list:
