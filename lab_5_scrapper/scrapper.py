@@ -102,10 +102,12 @@ class Config:
         for url in config_dto.seed_urls:
             if not isinstance(url, str) or not re.match(r'https?://.*', url):
                 raise IncorrectSeedURLError
-        if config_dto.total_articles > NUM_ARTICLES_UPPER_LIMIT:
-            raise NumberOfArticlesOutOfRangeError
-        if (not isinstance(config_dto.total_articles, int) or config_dto.total_articles < 1
-                or isinstance(config_dto.total_articles, bool)):
+        if isinstance(config_dto.total_articles, int):
+            if config_dto.total_articles > NUM_ARTICLES_UPPER_LIMIT:
+                raise NumberOfArticlesOutOfRangeError
+            elif isinstance(config_dto.total_articles, bool) or config_dto.total_articles < 1:
+                raise IncorrectNumberOfArticlesError
+        else:
             raise IncorrectNumberOfArticlesError
         if not isinstance(config_dto.headers, dict):
             raise IncorrectHeadersError
@@ -158,7 +160,7 @@ class Config:
         """
         Retrieve whether to use headless mode
         """
-        pass
+        return self._headless_mode
 
 
 def make_request(url: str, config: Config) -> requests.models.Response:
