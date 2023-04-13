@@ -97,7 +97,7 @@ class Config:
         are not corrupt
         """
         config_dto = self._extract_config_content()
-        if not isinstance(config_dto.seed_urls, list) or not config_dto.seed_urls:
+        if not isinstance(config_dto.seed_urls, list):
             raise IncorrectSeedURLError
         for url in config_dto.seed_urls:
             if not isinstance(url, str) or not re.match(r'https?://.*', url):
@@ -186,9 +186,9 @@ class Crawler:
         """
         Initializes an instance of the Crawler class
         """
-        self.urls = []
         self._config = config
         self._seed_urls = config.get_seed_urls()
+        self.urls = []
 
     def _extract_url(self, article_bs: BeautifulSoup) -> str:
         """
@@ -204,12 +204,14 @@ class Crawler:
         """
         for seed_url in self._seed_urls:
             response = make_request(seed_url, self._config)
-            if response.status_code == 200:
-                main_bs = BeautifulSoup(response.text, 'lxml')
-                articles = main_bs.find_all('a', {'class': 'news-for-copy'})
-                for article_bs in articles:
-                    if len(self.urls) < self._config.get_num_articles():
-                        self.urls.append(self._extract_url(article_bs))
+            main_bs = BeautifulSoup(response.text, 'lxml')
+            articles = main_bs.find_all('a', {'class': 'news-for-copy'})
+            for article_bs in articles:
+                if len(self.urls) >= self._config.get_num_articles():
+                    return
+                url = self._extract_url(article_bs)
+                if url not in self.urls and url.startswith('https://amurmedia.ru/news/'):
+                    self.urls.append(url)
 
     def get_search_urls(self) -> list:
         """
@@ -257,11 +259,9 @@ class HTMLParser:
         Parses each article
         """
         response = make_request(self._full_url, self._config)
-        if response.status_code == 200:
-            article_bs = BeautifulSoup(response.text, 'lxml')
-            self._fill_article_with_text(article_bs)
-            return self.article
-        return False
+        article_bs = BeautifulSoup(response.text, 'lxml')
+        self._fill_article_with_text(article_bs)
+        return self.article
 
 
 def prepare_environment(base_path: Union[Path, str]) -> None:
