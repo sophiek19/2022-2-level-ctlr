@@ -14,7 +14,7 @@ import requests
 from bs4 import BeautifulSoup
 
 from core_utils.article.article import Article
-from core_utils.article.io import to_raw
+from core_utils.article.io import to_meta, to_raw
 from core_utils.config_dto import ConfigDTO
 from core_utils.constants import (ASSETS_PATH, CRAWLER_CONFIG_PATH,
                                   NUM_ARTICLES_UPPER_LIMIT,
@@ -243,13 +243,19 @@ class HTMLParser:
         """
         main_bs = article_soup.find('div', {'class': "page-content io-article-body"})
         for paragraph in main_bs.find_all('p')[:-1]:
-            self.article.text += paragraph.text + '/n'
+            self.article.text += paragraph.text + '\n'
 
     def _fill_article_with_meta_information(self, article_soup: BeautifulSoup) -> None:
         """
         Finds meta information of article
         """
-        pass
+        title = article_soup.find('div', {'class': "page-fullnews exis-photo"}).find('h1')
+        self.article.title = title.text
+        author = article_soup.find('meta', {'name': "Author"})
+        if not author.text:
+            self.article.author = 'NOT FOUND'
+        else:
+            self.article.author = author.text
 
     def unify_date_format(self, date_str: str) -> datetime.datetime:
         """
@@ -264,6 +270,7 @@ class HTMLParser:
         response = make_request(self._full_url, self._config)
         article_bs = BeautifulSoup(response.text, 'lxml')
         self._fill_article_with_text(article_bs)
+        self._fill_article_with_meta_information(article_bs)
         return self.article
 
 
@@ -289,6 +296,7 @@ def main() -> None:
         text = parser.parse()
         if isinstance(text, Article):
             to_raw(text)
+            to_meta(text)
 
 
 if __name__ == "__main__":
