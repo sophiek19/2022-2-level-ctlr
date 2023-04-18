@@ -253,9 +253,9 @@ class HTMLParser:
         self.article.title = title.text
         author = article_soup.find('meta', {'name': "Author"})
         if not author.text:
-            self.article.author = 'NOT FOUND'
+            self.article.author = ['NOT FOUND']
         else:
-            self.article.author = author.text
+            self.article.author = [author.text]
 
     def unify_date_format(self, date_str: str) -> datetime.datetime:
         """
