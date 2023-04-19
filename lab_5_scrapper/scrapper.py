@@ -105,7 +105,7 @@ class Config:
         if isinstance(config_dto.total_articles, int):
             if config_dto.total_articles > NUM_ARTICLES_UPPER_LIMIT:
                 raise NumberOfArticlesOutOfRangeError
-            elif isinstance(config_dto.total_articles, bool) or config_dto.total_articles < 1:
+            if isinstance(config_dto.total_articles, bool) or config_dto.total_articles < 1:
                 raise IncorrectNumberOfArticlesError
         else:
             raise IncorrectNumberOfArticlesError
@@ -197,7 +197,7 @@ class Crawler:
         """
         if isinstance(article_bs.get('href'), str):
             return article_bs.get('href')
-        return ''
+        return 'incorrect url'
 
     def find_articles(self) -> None:
         """
@@ -283,7 +283,9 @@ class HTMLParser:
                 date_str = date_str.replace(month_name, month_number)
                 if f'{month_number},' in date_str:
                     year = today.strftime('%Y')
-                    date_str = date_str[:date_str.find(',')] + f' {year}' + date_str[date_str.find(','):]
+                    date_str = (date_str[:date_str.find(',')]
+                                + f' {year}'
+                                + date_str[date_str.find(','):])
         if not datetime.datetime.strptime(date_str, pattern):
             return today
         return datetime.datetime.strptime(date_str, pattern)
