@@ -196,8 +196,8 @@ class Crawler:
         Finds and retrieves URL from HTML
         """
         if isinstance(article_bs.get('href'), str):
-            return article_bs.get('href')
-        return 'incorrect url'
+            return str(article_bs.get('href'))
+        return 'url not found'
 
     def find_articles(self) -> None:
         """
