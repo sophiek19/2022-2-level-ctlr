@@ -249,8 +249,7 @@ class HTMLParser:
         """
         Finds meta information of article
         """
-        title = article_soup.find('div', {'class': "page-fullnews exis-photo"}).find('h1')
-        self.article.title = title.text
+        self.article.title = article_soup.find('title').text
         author = article_soup.find('meta', {'name': "Author"})
         if not author.text:
             self.article.author = ['NOT FOUND']
@@ -266,6 +265,9 @@ class HTMLParser:
         """
         pattern = '%d %m %Y, %H:%M'
         today = datetime.datetime.now()
+        if len(date_str) == 5:
+            current_date = f'{today.day} {today.month} {today.year}, {date_str}'
+            return datetime.datetime.strptime(current_date, pattern)
         months = {'января': '01',
                   'февраля': '02',
                   'марта': '03',
@@ -282,12 +284,9 @@ class HTMLParser:
             if month_name in date_str:
                 date_str = date_str.replace(month_name, month_number)
                 if f'{month_number},' in date_str:
-                    year = today.strftime('%Y')
                     date_str = (date_str[:date_str.find(',')]
-                                + f' {year}'
+                                + f' {today.year}'
                                 + date_str[date_str.find(','):])
-        if not datetime.datetime.strptime(date_str, pattern):
-            return today
         return datetime.datetime.strptime(date_str, pattern)
 
     def parse(self) -> Union[Article, bool, list]:
