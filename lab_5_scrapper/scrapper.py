@@ -284,9 +284,8 @@ class HTMLParser:
                 date_str = date_str.replace(month_name, month_number)
                 if re.match(r'\d+\s\d+\s\d+,\s\d+:\d+', date_str):
                     return datetime.datetime.strptime(date_str, pattern)
-                else:
-                    date_str = f'{date_str[:date_str.find(",")]} {today.year}{date_str[date_str.find(","):]}'
-                    return datetime.datetime.strptime(date_str, pattern)
+                date_str = f'{date_str[:date_str.find(",")]} {today.year}{date_str[date_str.find(","):]}'
+                return datetime.datetime.strptime(date_str, pattern)
 
     def parse(self) -> Union[Article, bool, list]:
         """
