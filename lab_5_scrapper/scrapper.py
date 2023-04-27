@@ -266,7 +266,8 @@ class HTMLParser:
         pattern = '%d %m %Y, %H:%M'
         today = datetime.datetime.now()
         if re.match(r'\d+:\d+', date_str):
-            return datetime.datetime.strptime(f'{today.day} {today.month} {today.year}, {date_str}', pattern)
+            current_date = f'{today.day} {today.month} {today.year}, {date_str}'
+            return datetime.datetime.strptime(current_date, pattern)
         months = {'января': '01',
                   'февраля': '02',
                   'марта': '03',
@@ -284,7 +285,8 @@ class HTMLParser:
                 date_str = date_str.replace(month_name, month_number)
                 if re.match(r'\d+\s\d+\s\d+,\s\d+:\d+', date_str):
                     return datetime.datetime.strptime(date_str, pattern)
-                date_str = f'{date_str[:date_str.find(",")]} {today.year}{date_str[date_str.find(","):]}'
+                date_str = f'{date_str[:date_str.find(",")]} ' \
+                           f'{today.year}{date_str[date_str.find(","):]}'
                 return datetime.datetime.strptime(date_str, pattern)
 
     def parse(self) -> Union[Article, bool, list]:
