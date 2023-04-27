@@ -287,7 +287,7 @@ class HTMLParser:
                     return datetime.datetime.strptime(date_str, pattern)
                 date_str = f'{date_str[:date_str.find(",")]} ' \
                            f'{today.year}{date_str[date_str.find(","):]}'
-                return datetime.datetime.strptime(date_str, pattern)
+        return datetime.datetime.strptime(date_str, pattern)
 
     def parse(self) -> Union[Article, bool, list]:
         """
