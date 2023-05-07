@@ -207,8 +207,8 @@ class MorphologicalAnalysisPipeline:
         """
         Returns the text representation as the list of ConlluSentence
         """
-        sentences = split_by_sentence(text)
         conllu_sentences = []
+        sentences = split_by_sentence(text)
         for sentence in sentences:
             tokens = [ConlluToken(word.strip()) for word in sentence.split()]
             conllu_sentences.append(ConlluSentence(sentences.index(sentence) + 1, sentence, tokens))
