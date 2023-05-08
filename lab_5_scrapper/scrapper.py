@@ -257,6 +257,8 @@ class HTMLParser:
             self.article.author = [author.text]
         self.article.topics.append(article_soup.find('a', {'class': "fn-rubric-a"}).text)
         date = article_soup.find('div', {'class': "fn-rubric-link"})
+        if date is None:
+            date = article_soup.find('p', {'class': "pldate"})
         self.article.date = self.unify_date_format(date.text.strip())
 
     def unify_date_format(self, date_str: str) -> datetime.datetime:
@@ -265,6 +267,8 @@ class HTMLParser:
         """
         pattern = '%d %m %Y, %H:%M'
         today = datetime.datetime.now()
+        if '.' in date_str:
+            return datetime.datetime.strptime(date_str, '%d.%m.%Y')
         if re.match(r'\d+:\d+', date_str):
             current_date = f'{today.day} {today.month} {today.year}, {date_str}'
             return datetime.datetime.strptime(current_date, pattern)
