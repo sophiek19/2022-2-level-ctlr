@@ -3,7 +3,6 @@ Pipeline for CONLL-U formatting
 """
 from pathlib import Path
 from typing import List
-import re
 
 from core_utils.article.article import (SentenceProtocol, get_article_id_from_filepath,
                                         split_by_sentence)
@@ -34,38 +33,33 @@ class CorpusManager:
         """
         Initializes CorpusManager
         """
-        self.path_to_raw_txt_data = path_to_raw_txt_data
-        self._validate_dataset()
+        self.path_to_data = path_to_raw_txt_data
         self._storage = {}
+        self._validate_dataset()
         self._scan_dataset()
 
     def _validate_dataset(self) -> None:
         """
         Validates folder with assets
         """
-        if not self.path_to_raw_txt_data.exists():
+        if not self.path_to_data.exists():
             raise FileNotFoundError
-        if not self.path_to_raw_txt_data.is_dir():
+        if not self.path_to_data.is_dir():
             raise NotADirectoryError
-        if not any(self.path_to_raw_txt_data.iterdir()):
+        if not any(self.path_to_data.iterdir()):
             raise EmptyDirectoryError
-        meta_files = [i for i in self.path_to_raw_txt_data.glob('*_meta.json')]
-        raw_files = [i for i in self.path_to_raw_txt_data.glob('*_raw.txt')]
-        if len(meta_files) != len(raw_files):
+        raw_files = [i for i in self.path_to_data.glob('*_raw.txt')]
+        if not all([file.stat().st_size for file in raw_files]):
             raise InconsistentDatasetError
-        for articles in raw_files, meta_files:
-            if not all([file.stat().st_size for file in articles]):
-                raise InconsistentDatasetError
-            for file in articles:
-                if re.match(f'{articles.index(file) + 1}_meta.json', file.name)  \
-                        or re.match(f'{articles.index(file) + 1}_raw.txt', file.name):
-                    continue
+        list_of_ids = [int(file.name[:file.name.index('_')]) for file in raw_files]
+        if sorted(list_of_ids) != list(range(1, len(list_of_ids) + 1)):
+            raise InconsistentDatasetError
 
     def _scan_dataset(self) -> None:
         """
         Register each dataset entry
         """
-        raw_files = [i for i in self.path_to_raw_txt_data.glob('*_raw.txt')]
+        raw_files = [i for i in self.path_to_data.glob('*_raw.txt')]
         for article_file in raw_files:
             id_number = get_article_id_from_filepath(article_file)
             self._storage[id_number] = from_raw(path=article_file)
